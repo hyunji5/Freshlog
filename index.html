@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>프레시로그 (FreshLog) — 장 본 순간부터, 유통기한 D-day까지</title>
+<meta name="description" content="냉장고 안을 일일이 확인하지 않아도, 프레시로그가 대신 기억합니다. 영수증 스캔 자동 등록, 유통기한 알림, AI 레시피 추천.">
+<style>
+/* SUBSTITUTED WEBFONTS — see readme.md "Font substitution".
+   Source spec calls for SoDoSans (proprietary) and Lander Tall (custom).
+   Nearest open substitutes: Manrope (sans), Lora (editorial serif), Kalam (script, exact match). */
+/* devanagari */
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/bb45f287.woff2") format('woff2');
+  unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+20F0, U+25CC, U+A830-A839, U+A8E0-A8FF, U+11B00-11B09;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/ddaf9125.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/cc03f508.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* devanagari */
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/24f73fef.woff2") format('woff2');
+  unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+20A8, U+20B9, U+20F0, U+25CC, U+A830-A839, U+A8E0-A8FF, U+11B00-11B09;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/0ffea39b.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Kalam';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/376a3f8f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/a219f1a2.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/2062aeb5.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* math */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/eb69a3b4.woff2") format('woff2');
+  unicode-range: U+0302-0303, U+0305, U+0307-0308, U+0310, U+0312, U+0315, U+031A, U+0326-0327, U+032C, U+032F-0330, U+0332-0333, U+0338, U+033A, U+0346, U+034D, U+0391-03A1, U+03A3-03A9, U+03B1-03C9, U+03D1, U+03D5-03D6, U+03F0-03F1, U+03F4-03F5, U+2016-2017, U+2034-2038, U+203C, U+2040, U+2043, U+2047, U+2050, U+2057, U+205F, U+2070-2071, U+2074-208E, U+2090-209C, U+20D0-20DC, U+20E1, U+20E5-20EF, U+2100-2112, U+2114-2115, U+2117-2121, U+2123-214F, U+2190, U+2192, U+2194-21AE, U+21B0-21E5, U+21F1-21F2, U+21F4-2211, U+2213-2214, U+2216-22FF, U+2308-230B, U+2310, U+2319, U+231C-2321, U+2336-237A, U+237C, U+2395, U+239B-23B7, U+23D0, U+23DC-23E1, U+2474-2475, U+25AF, U+25B3, U+25B7, U+25BD, U+25C1, U+25CA, U+25CC, U+25FB, U+266D-266F, U+27C0-27FF, U+2900-2AFF, U+2B0E-2B11, U+2B30-2B4C, U+2BFE, U+3030, U+FF5B, U+FF5D, U+1D400-1D7FF, U+1EE00-1EEFF;
+}
+/* symbols */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/e1b3a7a8.woff2") format('woff2');
+  unicode-range: U+0001-000C, U+000E-001F, U+007F-009F, U+20DD-20E0, U+20E2-20E4, U+2150-218F, U+2190, U+2192, U+2194-2199, U+21AF, U+21E6-21F0, U+21F3, U+2218-2219, U+2299, U+22C4-22C6, U+2300-243F, U+2440-244A, U+2460-24FF, U+25A0-27BF, U+2800-28FF, U+2921-2922, U+2981, U+29BF, U+29EB, U+2B00-2BFF, U+4DC0-4DFF, U+FFF9-FFFB, U+10140-1018E, U+10190-1019C, U+101A0, U+101D0-101FD, U+102E0-102FB, U+10E60-10E7E, U+1D2C0-1D2D3, U+1D2E0-1D37F, U+1F000-1F0FF, U+1F100-1F1AD, U+1F1E6-1F1FF, U+1F30D-1F30F, U+1F315, U+1F31C, U+1F31E, U+1F320-1F32C, U+1F336, U+1F378, U+1F37D, U+1F382, U+1F393-1F39F, U+1F3A7-1F3A8, U+1F3AC-1F3AF, U+1F3C2, U+1F3C4-1F3C6, U+1F3CA-1F3CE, U+1F3D4-1F3E0, U+1F3ED, U+1F3F1-1F3F3, U+1F3F5-1F3F7, U+1F408, U+1F415, U+1F41F, U+1F426, U+1F43F, U+1F441-1F442, U+1F444, U+1F446-1F449, U+1F44C-1F44E, U+1F453, U+1F46A, U+1F47D, U+1F4A3, U+1F4B0, U+1F4B3, U+1F4B9, U+1F4BB, U+1F4BF, U+1F4C8-1F4CB, U+1F4D6, U+1F4DA, U+1F4DF, U+1F4E3-1F4E6, U+1F4EA-1F4ED, U+1F4F7, U+1F4F9-1F4FB, U+1F4FD-1F4FE, U+1F503, U+1F507-1F50B, U+1F50D, U+1F512-1F513, U+1F53E-1F54A, U+1F54F-1F5FA, U+1F610, U+1F650-1F67F, U+1F687, U+1F68D, U+1F691, U+1F694, U+1F698, U+1F6AD, U+1F6B2, U+1F6B9-1F6BA, U+1F6BC, U+1F6C6-1F6CF, U+1F6D3-1F6D7, U+1F6E0-1F6EA, U+1F6F0-1F6F3, U+1F6F7-1F6FC, U+1F700-1F7FF, U+1F800-1F80B, U+1F810-1F847, U+1F850-1F859, U+1F860-1F887, U+1F890-1F8AD, U+1F8B0-1F8BB, U+1F8C0-1F8C1, U+1F900-1F90B, U+1F93B, U+1F946, U+1F984, U+1F996, U+1F9E9, U+1FA00-1FA6F, U+1FA70-1FA7C, U+1FA80-1FA89, U+1FA8F-1FAC6, U+1FACE-1FADC, U+1FADF-1FAE9, U+1FAF0-1FAF8, U+1FB00-1FBFF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/21631e51.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/94bf2ca6.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/6a020a1c.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/56c7e95b.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/1d993ebc.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* math */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/014ca172.woff2") format('woff2');
+  unicode-range: U+0302-0303, U+0305, U+0307-0308, U+0310, U+0312, U+0315, U+031A, U+0326-0327, U+032C, U+032F-0330, U+0332-0333, U+0338, U+033A, U+0346, U+034D, U+0391-03A1, U+03A3-03A9, U+03B1-03C9, U+03D1, U+03D5-03D6, U+03F0-03F1, U+03F4-03F5, U+2016-2017, U+2034-2038, U+203C, U+2040, U+2043, U+2047, U+2050, U+2057, U+205F, U+2070-2071, U+2074-208E, U+2090-209C, U+20D0-20DC, U+20E1, U+20E5-20EF, U+2100-2112, U+2114-2115, U+2117-2121, U+2123-214F, U+2190, U+2192, U+2194-21AE, U+21B0-21E5, U+21F1-21F2, U+21F4-2211, U+2213-2214, U+2216-22FF, U+2308-230B, U+2310, U+2319, U+231C-2321, U+2336-237A, U+237C, U+2395, U+239B-23B7, U+23D0, U+23DC-23E1, U+2474-2475, U+25AF, U+25B3, U+25B7, U+25BD, U+25C1, U+25CA, U+25CC, U+25FB, U+266D-266F, U+27C0-27FF, U+2900-2AFF, U+2B0E-2B11, U+2B30-2B4C, U+2BFE, U+3030, U+FF5B, U+FF5D, U+1D400-1D7FF, U+1EE00-1EEFF;
+}
+/* symbols */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/ca92e897.woff2") format('woff2');
+  unicode-range: U+0001-000C, U+000E-001F, U+007F-009F, U+20DD-20E0, U+20E2-20E4, U+2150-218F, U+2190, U+2192, U+2194-2199, U+21AF, U+21E6-21F0, U+21F3, U+2218-2219, U+2299, U+22C4-22C6, U+2300-243F, U+2440-244A, U+2460-24FF, U+25A0-27BF, U+2800-28FF, U+2921-2922, U+2981, U+29BF, U+29EB, U+2B00-2BFF, U+4DC0-4DFF, U+FFF9-FFFB, U+10140-1018E, U+10190-1019C, U+101A0, U+101D0-101FD, U+102E0-102FB, U+10E60-10E7E, U+1D2C0-1D2D3, U+1D2E0-1D37F, U+1F000-1F0FF, U+1F100-1F1AD, U+1F1E6-1F1FF, U+1F30D-1F30F, U+1F315, U+1F31C, U+1F31E, U+1F320-1F32C, U+1F336, U+1F378, U+1F37D, U+1F382, U+1F393-1F39F, U+1F3A7-1F3A8, U+1F3AC-1F3AF, U+1F3C2, U+1F3C4-1F3C6, U+1F3CA-1F3CE, U+1F3D4-1F3E0, U+1F3ED, U+1F3F1-1F3F3, U+1F3F5-1F3F7, U+1F408, U+1F415, U+1F41F, U+1F426, U+1F43F, U+1F441-1F442, U+1F444, U+1F446-1F449, U+1F44C-1F44E, U+1F453, U+1F46A, U+1F47D, U+1F4A3, U+1F4B0, U+1F4B3, U+1F4B9, U+1F4BB, U+1F4BF, U+1F4C8-1F4CB, U+1F4D6, U+1F4DA, U+1F4DF, U+1F4E3-1F4E6, U+1F4EA-1F4ED, U+1F4F7, U+1F4F9-1F4FB, U+1F4FD-1F4FE, U+1F503, U+1F507-1F50B, U+1F50D, U+1F512-1F513, U+1F53E-1F54A, U+1F54F-1F5FA, U+1F610, U+1F650-1F67F, U+1F687, U+1F68D, U+1F691, U+1F694, U+1F698, U+1F6AD, U+1F6B2, U+1F6B9-1F6BA, U+1F6BC, U+1F6C6-1F6CF, U+1F6D3-1F6D7, U+1F6E0-1F6EA, U+1F6F0-1F6F3, U+1F6F7-1F6FC, U+1F700-1F7FF, U+1F800-1F80B, U+1F810-1F847, U+1F850-1F859, U+1F860-1F887, U+1F890-1F8AD, U+1F8B0-1F8BB, U+1F8C0-1F8C1, U+1F900-1F90B, U+1F93B, U+1F946, U+1F984, U+1F996, U+1F9E9, U+1FA00-1FA6F, U+1FA70-1FA7C, U+1FA80-1FA89, U+1FA8F-1FAC6, U+1FACE-1FADC, U+1FADF-1FAE9, U+1FAF0-1FAF8, U+1FB00-1FBFF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/db1f4d1a.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/833709d5.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/69b79efd.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/56c7e95b.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/1d993ebc.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* math */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/014ca172.woff2") format('woff2');
+  unicode-range: U+0302-0303, U+0305, U+0307-0308, U+0310, U+0312, U+0315, U+031A, U+0326-0327, U+032C, U+032F-0330, U+0332-0333, U+0338, U+033A, U+0346, U+034D, U+0391-03A1, U+03A3-03A9, U+03B1-03C9, U+03D1, U+03D5-03D6, U+03F0-03F1, U+03F4-03F5, U+2016-2017, U+2034-2038, U+203C, U+2040, U+2043, U+2047, U+2050, U+2057, U+205F, U+2070-2071, U+2074-208E, U+2090-209C, U+20D0-20DC, U+20E1, U+20E5-20EF, U+2100-2112, U+2114-2115, U+2117-2121, U+2123-214F, U+2190, U+2192, U+2194-21AE, U+21B0-21E5, U+21F1-21F2, U+21F4-2211, U+2213-2214, U+2216-22FF, U+2308-230B, U+2310, U+2319, U+231C-2321, U+2336-237A, U+237C, U+2395, U+239B-23B7, U+23D0, U+23DC-23E1, U+2474-2475, U+25AF, U+25B3, U+25B7, U+25BD, U+25C1, U+25CA, U+25CC, U+25FB, U+266D-266F, U+27C0-27FF, U+2900-2AFF, U+2B0E-2B11, U+2B30-2B4C, U+2BFE, U+3030, U+FF5B, U+FF5D, U+1D400-1D7FF, U+1EE00-1EEFF;
+}
+/* symbols */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/ca92e897.woff2") format('woff2');
+  unicode-range: U+0001-000C, U+000E-001F, U+007F-009F, U+20DD-20E0, U+20E2-20E4, U+2150-218F, U+2190, U+2192, U+2194-2199, U+21AF, U+21E6-21F0, U+21F3, U+2218-2219, U+2299, U+22C4-22C6, U+2300-243F, U+2440-244A, U+2460-24FF, U+25A0-27BF, U+2800-28FF, U+2921-2922, U+2981, U+29BF, U+29EB, U+2B00-2BFF, U+4DC0-4DFF, U+FFF9-FFFB, U+10140-1018E, U+10190-1019C, U+101A0, U+101D0-101FD, U+102E0-102FB, U+10E60-10E7E, U+1D2C0-1D2D3, U+1D2E0-1D37F, U+1F000-1F0FF, U+1F100-1F1AD, U+1F1E6-1F1FF, U+1F30D-1F30F, U+1F315, U+1F31C, U+1F31E, U+1F320-1F32C, U+1F336, U+1F378, U+1F37D, U+1F382, U+1F393-1F39F, U+1F3A7-1F3A8, U+1F3AC-1F3AF, U+1F3C2, U+1F3C4-1F3C6, U+1F3CA-1F3CE, U+1F3D4-1F3E0, U+1F3ED, U+1F3F1-1F3F3, U+1F3F5-1F3F7, U+1F408, U+1F415, U+1F41F, U+1F426, U+1F43F, U+1F441-1F442, U+1F444, U+1F446-1F449, U+1F44C-1F44E, U+1F453, U+1F46A, U+1F47D, U+1F4A3, U+1F4B0, U+1F4B3, U+1F4B9, U+1F4BB, U+1F4BF, U+1F4C8-1F4CB, U+1F4D6, U+1F4DA, U+1F4DF, U+1F4E3-1F4E6, U+1F4EA-1F4ED, U+1F4F7, U+1F4F9-1F4FB, U+1F4FD-1F4FE, U+1F503, U+1F507-1F50B, U+1F50D, U+1F512-1F513, U+1F53E-1F54A, U+1F54F-1F5FA, U+1F610, U+1F650-1F67F, U+1F687, U+1F68D, U+1F691, U+1F694, U+1F698, U+1F6AD, U+1F6B2, U+1F6B9-1F6BA, U+1F6BC, U+1F6C6-1F6CF, U+1F6D3-1F6D7, U+1F6E0-1F6EA, U+1F6F0-1F6F3, U+1F6F7-1F6FC, U+1F700-1F7FF, U+1F800-1F80B, U+1F810-1F847, U+1F850-1F859, U+1F860-1F887, U+1F890-1F8AD, U+1F8B0-1F8BB, U+1F8C0-1F8C1, U+1F900-1F90B, U+1F93B, U+1F946, U+1F984, U+1F996, U+1F9E9, U+1FA00-1FA6F, U+1FA70-1FA7C, U+1FA80-1FA89, U+1FA8F-1FAC6, U+1FACE-1FADC, U+1FADF-1FAE9, U+1FAF0-1FAF8, U+1FB00-1FBFF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/db1f4d1a.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/833709d5.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/69b79efd.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/81ad2ee4.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/9e82014c.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/9427934b.woff2") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/b5441366.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/97a0f30e.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("assets/fonts/d7aff45f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/fonts/81ad2ee4.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/fonts/9e82014c.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/fonts/9427934b.woff2") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/fonts/b5441366.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/fonts/97a0f30e.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("assets/fonts/d7aff45f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/81ad2ee4.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/9e82014c.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/9427934b.woff2") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/b5441366.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/97a0f30e.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("assets/fonts/d7aff45f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+/* cyrillic-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/81ad2ee4.woff2") format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+/* cyrillic */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/9e82014c.woff2") format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+/* greek */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/9427934b.woff2") format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+/* vietnamese */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/b5441366.woff2") format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB;
+}
+/* latin-ext */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/97a0f30e.woff2") format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+/* latin */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("assets/fonts/d7aff45f.woff2") format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* NOTE: the design tokens below were not present anywhere in the source export
+   (no :root block existed in the bundled file, so every var(--...) reference
+   throughout the page was previously undefined). Values are inferred from the
+   token names and how they're used in context to make the page render
+   correctly; replace with your real brand values if you have an official
+   style guide. */
+:root {
+  --white: #ffffff;
+  --white-10: rgba(255,255,255,0.1);
+  --black: #14171a;
+  --black-60: rgba(20,23,26,0.6);
+  --ceramic: #f4f1ea;
+  --neutral-warm: #faf7f0;
+  --green-brand: #1f5c3f;
+  --green-accent: #2f8f5b;
+  --green-house: #eaf3ec;
+  --gold: #c9962f;
+  --text-black: #1c1e1b;
+  --text-black-soft: #5b6058;
+  --text-white-soft: rgba(255,255,255,0.75);
+
+  --font-sans: 'Manrope', 'Inter', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --weight-regular: 400;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  --text-2: 12px;
+  --text-3: 14px;
+  --text-4: 16px;
+  --text-5: 20px;
+  --text-7: 28px;
+  --text-8: 36px;
+  --text-9: 48px;
+
+  --type-small: var(--weight-regular) var(--text-2)/1.4 var(--font-sans);
+  --type-body: var(--weight-regular) var(--text-4)/1.6 var(--font-sans);
+  --type-body-lg: var(--weight-regular) var(--text-5)/1.6 var(--font-sans);
+  --type-h1: var(--weight-semibold) var(--text-8)/1.3 var(--font-sans);
+
+  --tracking-loose: 0.02em;
+  --tracking-looser: 0.06em;
+  --tracking-display: -0.01em;
+
+  --space-4: 16px;
+  --space-6: 24px;
+  --outer-gutter-lg: 64px;
+  --nav-height-md: 64px;
+  --shadow-nav: 0 1px 0 rgba(0,0,0,0.06);
+}
+
+/* Replacements for removed design-system components (Button/Card/Icon/Expander) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-4);
+  text-decoration: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.btn:hover { opacity: 0.88; }
+.btn-lg { padding: 14px 28px; font-size: var(--text-5); }
+.btn-full { width: 100%; box-sizing: border-box; }
+.btn-filled { background: var(--green-brand); color: var(--white); }
+.btn-outlined { background: transparent; color: var(--green-brand); border-color: var(--green-brand); }
+.btn-inverted-green { background: var(--white); color: var(--green-brand); }
+.btn-dark-outlined { background: transparent; color: var(--text-black); border-color: var(--black-60); }
+.btn-black-filled { background: var(--black); color: var(--white); }
+
+.card {
+  border-radius: 12px;
+  padding: 24px;
+  box-sizing: border-box;
+}
+.card-white { background: var(--white); }
+.card-quiet { background: var(--ceramic); }
+.card-house { background: var(--green-brand); }
+
+.icon { display: inline-flex; }
+.icon svg { display: block; width: 100%; height: 100%; }
+
+.faq-item {
+  border-bottom: 1px solid var(--black-60);
+  padding: 16px 0;
+}
+.faq-item summary {
+  font: var(--weight-semibold) var(--text-4)/1.3 var(--font-sans);
+  color: var(--text-black);
+  cursor: pointer;
+  list-style: none;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after { content: '+'; float: right; font-weight: var(--weight-regular); }
+.faq-item[open] summary::after { content: '−'; }
+.faq-item p { margin-top: 12px; }
+
+/* Layout classes used throughout the page body — also missing from the source export */
+.fl-wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; box-sizing: border-box; }
+.fl-section { padding: 72px 0; }
+.fl-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+@media (max-width: 860px) {
+  .fl-hero { grid-template-columns: 1fr !important; }
+  #pain > .fl-wrap { grid-template-columns: 1fr !important; }
+  .fl-grid3 { grid-template-columns: 1fr !important; }
+}
+</style>
+</head>
+<body>
+
+<header style="position:sticky;top:0;z-index:20;background:var(--white);box-shadow:var(--shadow-nav);height:var(--nav-height-md);display:flex;align-items:center;padding:0 var(--outer-gutter-lg);gap:var(--space-6);">
+  <span style="font-family:var(--font-sans);font-weight:var(--weight-bold);font-size:var(--text-4);letter-spacing:var(--tracking-looser);color:var(--green-brand);text-transform:uppercase;">FreshLog</span>
+  <nav style="display:flex;align-items:center;gap:var(--space-4);flex:1;">
+    <a href="#features" style="padding:4px 0;font-family:var(--font-sans);font-size:var(--text-2);font-weight:var(--weight-regular);letter-spacing:var(--tracking-loose);text-transform:uppercase;color:var(--text-black);text-decoration:none;">기능 소개</a>
+    <a href="#pricing" style="padding:4px 0;font-family:var(--font-sans);font-size:var(--text-2);font-weight:var(--weight-regular);letter-spacing:var(--tracking-loose);text-transform:uppercase;color:var(--text-black);text-decoration:none;">요금제</a>
+    <a href="#trust" style="padding:4px 0;font-family:var(--font-sans);font-size:var(--text-2);font-weight:var(--weight-regular);letter-spacing:var(--tracking-loose);text-transform:uppercase;color:var(--text-black);text-decoration:none;">후기</a>
+    <a href="#faq" style="padding:4px 0;font-family:var(--font-sans);font-size:var(--text-2);font-weight:var(--weight-regular);letter-spacing:var(--tracking-loose);text-transform:uppercase;color:var(--text-black);text-decoration:none;">FAQ</a>
+  </nav>
+  <a href="#" style="font-family:var(--font-sans);font-size:var(--text-3);font-weight:var(--weight-semibold);color:var(--text-black);text-decoration:none;padding:8px 16px;border:1px solid var(--black-60);border-radius:8px;">로그인</a>
+  <a href="#" style="font-family:var(--font-sans);font-size:var(--text-3);font-weight:var(--weight-semibold);color:var(--white);background:var(--black);text-decoration:none;padding:8px 16px;border-radius:8px;">회원가입</a>
+</header>
+
+<section id="hero" class="fl-section" style="background:var(--neutral-warm);padding-top:56px;">
+  <div class="fl-wrap fl-hero" style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:48px;align-items:center;">
+    <div>
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--green-accent);">출시 예정 · 사전 가입 오픈</span>
+      <h1 style="font: var(--weight-semibold) clamp(32px,5vw,58px)/1.2 var(--font-sans); letter-spacing: var(--tracking-display); color: var(--green-brand); margin: 16px 0 0; font-family: Inter">장 본 순간부터, 유통기한 D-day까지</h1>
+      <p style="font: var(--type-body-lg); color: var(--text-black); margin: 16px 0 0; font-family: Inter">냉장고 대신 기억해 알려드립니다 — 영수증 한 장이면 끝, 우리 집 냉장고를 AI가 대신 기억합니다.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:32px;">
+        <a href="#cta" class="btn btn-filled btn-lg">사전 등록하기</a>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:16px;">
+        
+        
+      </div>
+      <p style="font:var(--type-small);color:var(--text-black-soft);margin-top:16px;">지금 사전 등록하면 출시 후 첫 달 무료 · 얼리버드 한정</p>
+    </div>
+    <div class="fl-hero-media">
+      <img src="assets/images/7634dfc8.jpg" alt="냉장고 인벤토리 앱 화면을 보여주는 스마트폰" style="width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;display:block;">
+    </div>
+  </div>
+</section>
+
+<section id="pain" class="fl-section" style="background:var(--white);">
+  <div class="fl-wrap" style="display:grid;grid-template-columns:0.9fr 1.1fr;gap:48px;align-items:center;">
+    <img src="assets/images/5bae8a7e.jpg" alt="장 봐온 재료를 들고 냉장고 안을 확인하는 모습" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;display:block;">
+    <div>
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--green-accent);">이런 적 있나요?</span>
+      <h2 style="font:var(--type-h1);color:var(--green-brand);margin:16px 0 0;">장 봐도 냉장고에 뭐가 있는지 몰라서 또 사는 당신에게</h2>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-top:24px;">
+        <p style="font:var(--type-body);color:var(--text-black);margin:0;">중복 구매로 새는 식비, 유통기한을 놓쳐 버려지는 식재료, 가족 식재료까지 챙겨야 하는 스트레스 — 매일 반복되는 고민입니다.</p>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">냉장고 안을 일일이 확인하지 않아도, 프레시로그가 대신 기억합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="fl-section" style="background:var(--neutral-warm);">
+  <div class="fl-wrap">
+    <div style="text-align:center;max-width:640px;margin:0 auto 40px;">
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--green-accent);">핵심 기능</span>
+      <h2 style="font:var(--type-h1);color:var(--green-brand);margin:16px 0 0;">프레시로그가 다른 이유, 세 가지</h2>
+    </div>
+    <div class="fl-grid3">
+      <div class="card card-white">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <span class="icon" style="color:var(--green-accent);width:28px;height:28px;"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="3" y1="12" x2="21" y2="12"/></svg></span>
+          <h3 style="font:var(--weight-semibold) var(--text-4)/1.3 var(--font-sans);color:var(--text-black);margin:0;">영수증 스캔 자동 등록</h3>
+          <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">수동 입력 없이 영수증 한 장, 3초 만에 재고 등록 끝.</p>
+        </div>
+      </div>
+      <div class="card card-white">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <span class="icon" style="color:var(--green-accent);width:28px;height:28px;"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/><path d="M4 4l1.5 1.5"/><path d="M20 4l-1.5 1.5"/></svg></span>
+          <h3 style="font:var(--weight-semibold) var(--text-4)/1.3 var(--font-sans);color:var(--text-black);margin:0;">유통기한 예측 알림</h3>
+          <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">품목별 AI 유통기한 추정과 임박 알림으로 놓치지 않게.</p>
+        </div>
+      </div>
+      <div class="card card-white">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <span class="icon" style="color:var(--green-accent);width:28px;height:28px;"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 8a4 4 0 0 0-3.2-3.92 3 3 0 0 0-5.6 0A4 4 0 0 0 5 12v6h14v-6a4 4 0 0 0-2-8z"/><line x1="6" y1="17" x2="18" y2="17"/></svg></span>
+          <h3 style="font:var(--weight-semibold) var(--text-4)/1.3 var(--font-sans);color:var(--text-black);margin:0;">재고 기반 레시피 추천</h3>
+          <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">"있는 재료로 뭐 해먹지?" 고민을 대신 해결해 드려요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" class="fl-section" style="background:var(--ceramic);">
+  <div class="fl-wrap">
+    <div style="text-align:center;max-width:640px;margin:0 auto 40px;">
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--green-accent);">작동 방식</span>
+      <h2 style="font:var(--type-h1);color:var(--green-brand);margin:16px 0 0;">세 단계면 충분합니다</h2>
+    </div>
+    <div class="fl-grid3">
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
+        <span style="font:var(--weight-bold) var(--text-8)/1 var(--font-sans);color:var(--gold);">01</span>
+        <h3 style="font:var(--weight-semibold) var(--text-4)/1.3 var(--font-sans);color:var(--text-black);margin:0;">영수증 스캔</h3>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">장 보고 나온 영수증을 카메라로 찍기만 하면 됩니다.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
+        <span style="font:var(--weight-bold) var(--text-8)/1 var(--font-sans);color:var(--gold);">02</span>
+        <h3 style="font:var(--weight-semibold) var(--text-4)/1.3 var(--font-sans);color:var(--text-black);margin:0;">자동 등록</h3>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">품목·수량·예상 유통기한이 냉장고 재고에 자동으로 채워집니다.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;align-items:flex-start;">
+        <span style="font:var(--weight-bold) var(--text-8)/1 var(--font-sans);color:var(--gold);">03</span>
+        <h3 style="font:var(--weight-semibold) var(--text-4)/1.3 var(--font-sans);color:var(--text-black);margin:0;">알림 &amp; 레시피 추천</h3>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">유통기한이 임박하면 알려주고, 있는 재료로 만들 레시피까지 추천합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="extra" class="fl-section" style="background:var(--white);">
+  <div class="fl-wrap">
+    <div style="text-align:center;max-width:640px;margin:0 auto 40px;">
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--green-accent);">더 있어요</span>
+      <h2 style="font:var(--type-h1);color:var(--green-brand);margin:16px 0 0;">냉장고 관리, 이렇게까지 편해집니다</h2>
+    </div>
+    <div class="fl-grid3">
+      <div class="card card-quiet">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <span class="icon" style="color:var(--green-brand);width:26px;height:26px;"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          <h3 style="font:var(--weight-semibold) var(--text-3)/1.3 var(--font-sans);color:var(--text-black);margin:0;">가족 냉장고 공유</h3>
+          <p style="font:var(--type-small);color:var(--text-black-soft);margin:0;">가족 모두가 같은 재고를 실시간으로 확인하고 관리해요.</p>
+        </div>
+      </div>
+      <div class="card card-quiet">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <span class="icon" style="color:var(--green-brand);width:26px;height:26px;"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="20" x2="4" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="20" y1="20" x2="20" y2="14"/></svg></span>
+          <h3 style="font:var(--weight-semibold) var(--text-3)/1.3 var(--font-sans);color:var(--text-black);margin:0;">소비 패턴 리포트</h3>
+          <p style="font:var(--type-small);color:var(--text-black-soft);margin:0;">무엇을 얼마나 사고 버리는지, 한눈에 정리해 드려요.</p>
+        </div>
+      </div>
+      <div class="card card-quiet">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <span class="icon" style="color:var(--green-brand);width:26px;height:26px;"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 11 3.83A2 2 0 0 0 9.59 3.2L4 3a1 1 0 0 0-1 1l.2 5.59a2 2 0 0 0 .58 1.4l9.6 9.6a2 2 0 0 0 2.82 0l4.4-4.4a2 2 0 0 0 0-2.82Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg></span>
+          <h3 style="font:var(--weight-semibold) var(--text-3)/1.3 var(--font-sans);color:var(--text-black);margin:0;">마트 제휴 할인 알림</h3>
+          <p style="font:var(--type-small);color:var(--text-black-soft);margin:0;">자주 사는 재료가 할인할 때 먼저 알려드려요.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="trust" class="fl-section" style="background:var(--green-house);">
+  <div class="fl-wrap" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;align-items:stretch;">
+    <div style="display:flex;flex-direction:column;justify-content:center;gap:12px;">
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--gold);">사전 가입자 수</span>
+      <div style="font:var(--weight-semibold) var(--text-9)/1 var(--font-sans);color:var(--white);">3,200명</div>
+      <p style="font:var(--type-body-lg);color:var(--text-white-soft);margin:0;">벌써 이만큼의 사람들이 프레시로그의 사전 가입자로 함께하고 있어요.</p>
+    </div>
+    <div style="background:var(--white-10);border-radius:12px;padding:32px;display:flex;flex-direction:column;gap:16px;justify-content:center;">
+      <span class="icon" style="color:var(--gold);width:24px;height:24px;"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="currentColor"><path d="M9.5 5C6.5 6.7 4.7 9.1 4.7 12.2c0 2.6 1.6 4.3 3.7 4.3 1.9 0 3.3-1.4 3.3-3.3 0-1.8-1.2-3-2.9-3.1-.1-1.7 1.2-3.8 3.2-4.9L9.5 5Zm9.3 0c-3 1.7-4.8 4.1-4.8 7.2 0 2.6 1.6 4.3 3.7 4.3 1.9 0 3.3-1.4 3.3-3.3 0-1.8-1.2-3-2.9-3.1-.1-1.7 1.2-3.8 3.2-4.9L18.8 5Z"/></svg></span>
+      <p style="font:var(--type-body-lg);color:var(--white);margin:0;">"영수증만 찍으면 끝이라 진짜 편해요. 유통기한 놓쳐서 버리는 게 확실히 줄었어요."</p>
+      <span style="font:var(--type-small);color:var(--text-white-soft);">베타 테스터 후기</span>
+    </div>
+  </div>
+</section>
+
+<section id="pricing" class="fl-section" style="background:var(--neutral-warm);">
+  <div class="fl-wrap">
+    <div style="text-align:center;max-width:640px;margin:0 auto 40px;">
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--green-accent);">요금제</span>
+      <h2 style="font:var(--type-h1);color:var(--green-brand);margin:16px 0 0;">필요한 만큼, 부담 없이</h2>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:800px;margin:0 auto;">
+      <div class="card card-white">
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div>
+            <h3 style="font:var(--weight-semibold) var(--text-5)/1.3 var(--font-sans);color:var(--text-black);margin:0;">Free</h3>
+            <p style="font:var(--weight-semibold) var(--text-7)/1.2 var(--font-sans);color:var(--green-brand);margin:8px 0 0;">무료</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <span style="font:var(--type-body);color:var(--text-black);">✓ 기본 재고 관리</span>
+            <span style="font:var(--type-body);color:var(--text-black);">✓ 유통기한 알림 (7일 이내)</span>
+            <span style="font:var(--type-body);color:var(--text-black);">✓ 레시피 추천 월 5회</span>
+          </div>
+          <a href="#cta" class="btn btn-outlined btn-full">무료로 시작</a>
+        </div>
+      </div>
+      <div class="card card-house">
+        <div style="display:flex;flex-direction:column;gap:20px;">
+          <div>
+            <h3 style="font:var(--weight-semibold) var(--text-5)/1.3 var(--font-sans);color:var(--white);margin:0;">Premium</h3>
+            <p style="font:var(--weight-semibold) var(--text-7)/1.2 var(--font-sans);color:var(--gold);margin:8px 0 0;">월 4,900원 <span style="font:var(--type-small);color:var(--text-white-soft);">/ 연 39,000원</span></p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <span style="font:var(--type-body);color:var(--white);">✓ 유통기한 알림 무제한</span>
+            <span style="font:var(--type-body);color:var(--white);">✓ 가족 냉장고 공유</span>
+            <span style="font:var(--type-body);color:var(--white);">✓ 소비 패턴 리포트</span>
+            <span style="font:var(--type-body);color:var(--white);">✓ 마트 제휴 할인 알림 우선 제공</span>
+          </div>
+          <a href="#cta" class="btn btn-inverted-green btn-full">Premium 알아보기</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="fl-section" style="background:var(--ceramic);">
+  <div class="fl-wrap" style="max-width:760px;">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span style="font:var(--type-small);font-weight:var(--weight-semibold);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--green-accent);">FAQ</span>
+      <h2 style="font:var(--type-h1);color:var(--green-brand);margin:16px 0 0;">자주 묻는 질문</h2>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <details class="faq-item">
+        <summary>영수증 인식률이 얼마나 되나요?</summary>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">주요 대형마트·편의점 영수증 기준 95% 이상의 정확도로 품목을 인식합니다. 인식이 어려운 항목은 직접 수정할 수 있어요.</p>
+      </details>
+      <details class="faq-item">
+        <summary>어떤 마트 영수증을 지원하나요?</summary>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">대형마트, 온라인 장보기, 동네 슈퍼 영수증까지 대부분 지원합니다. 지원 목록은 출시 전까지 계속 늘어날 예정입니다.</p>
+      </details>
+      <details class="faq-item">
+        <summary>내 데이터는 안전하게 보관되나요?</summary>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">영수증 이미지와 구매 데이터는 암호화되어 보관되며, 본인 동의 없이 제3자에게 제공되지 않습니다.</p>
+      </details>
+      <details class="faq-item">
+        <summary>언제 출시되나요?</summary>
+        <p style="font:var(--type-body);color:var(--text-black-soft);margin:0;">정식 출시일은 추후 공지됩니다. 사전 등록하시면 출시 소식을 가장 먼저 받아보실 수 있어요.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section id="cta" class="fl-section" style="background:var(--green-house);text-align:center;">
+  <div class="fl-wrap" style="max-width:640px;">
+    <h2 style="font:var(--weight-semibold) clamp(28px,4vw,var(--text-8))/1.25 var(--font-sans);color:var(--white);margin:0;">지금 사전 등록하고<br>출시 후 첫 달 무료 혜택 받기</h2>
+    <p style="font:var(--type-body-lg);color:var(--text-white-soft);margin:16px 0 0;">얼리버드 한정 혜택, 정식 출시 전 가장 먼저 알려드립니다.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:32px;">
+      <a href="#" class="btn btn-inverted-green btn-lg">사전 등록하기</a>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:20px;">
+      
+      
+    </div>
+  </div>
+</section>
+
+<footer style="background:var(--green-house);padding:48px 24px 32px;">
+  <div class="fl-wrap" style="display:flex;flex-direction:column;gap:24px;">
+    <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:24px;">
+      <div>
+        <span style="font:var(--weight-bold) var(--text-4)/1 var(--font-sans);letter-spacing:var(--tracking-looser);text-transform:uppercase;color:var(--white);">FreshLog</span>
+        <p style="font:var(--type-small);color:var(--text-white-soft);margin:12px 0 0;max-width:320px;">(주)프레시로그 · 대표 홍길동<br>사업자등록번호 000-00-00000<br>서울특별시 강남구 테헤란로 000</p>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <a href="#" class="icon" style="color:var(--white);width:20px;height:20px;" aria-label="Instagram"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" class="icon" style="color:var(--white);width:20px;height:20px;" aria-label="Facebook"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+        <a href="#" class="icon" style="color:var(--white);width:20px;height:20px;" aria-label="YouTube"><svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22.5 8.5s-.2-1.6-.9-2.3c-.9-.9-1.8-.9-2.3-1C15.9 5 12 5 12 5h0s-3.9 0-7.3.2c-.5 0-1.4.1-2.3 1-.7.7-.9 2.3-.9 2.3S1 10.4 1 12.3v1.8c0 1.9.2 3.8.2 3.8s.2 1.6.9 2.3c.9.9 2 .9 2.5 1 1.8.2 7.4.2 7.4.2s3.9 0 7.3-.2c.5-.1 1.4-.1 2.3-1 .7-.7.9-2.3.9-2.3s.2-1.9.2-3.8v-1.8c0-1.9-.2-3.8-.2-3.8Z"/><polygon points="10 15.5 15.5 12.3 10 9 10 15.5" fill="currentColor" stroke="none"/></svg></a>
+      </div>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:16px;border-top:1px solid var(--white-10);padding-top:20px;">
+      <a href="#" style="font:var(--type-small);color:var(--text-white-soft);text-decoration:none;">개인정보처리방침</a>
+      <a href="#" style="font:var(--type-small);color:var(--text-white-soft);text-decoration:none;">이용약관</a>
+      <span style="font:var(--type-small);color:var(--text-white-soft);">© 2026 FreshLog. All rights reserved.</span>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
